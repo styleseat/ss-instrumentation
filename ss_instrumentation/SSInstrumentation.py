@@ -44,7 +44,7 @@ FLUSH_POLICIES = {
 }
 
 
-class SSCloudwatchMetrics(object):
+class SSInstrumentation(object):
     """Class for managing methods that send data to be stored in AWS"""
 
     def __init__(self, config, storage=None, flush_policy='ALWAYS'):
