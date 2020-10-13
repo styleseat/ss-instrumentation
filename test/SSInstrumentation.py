@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from freezegun import freeze_time
 import mock
@@ -37,9 +37,9 @@ class TestSSInstrumenation(object):
         mock_client_constructor.assert_called_with('cloudwatch', region_name='us-west-2')
 
     @standard_mock
-    def test_store_metric(self, mock_client):
+    def test_put_metric(self, mock_client):
         instr = self.create_instr()
-        instr.store_metric('fizz', 6)
+        instr.put_metric('fizz', 6)
 
         mock_client.put_metric_data.assert_called_with(
             Namespace='FizzBuzzAsAService',
@@ -54,9 +54,9 @@ class TestSSInstrumenation(object):
         )
 
     @standard_mock
-    def test_store_metric_with_dims(self, mock_client):
+    def test_put_metric_with_dims(self, mock_client):
         instr = self.create_instr()
-        instr.store_metric('fizz', 6, is_prime='no', why='divisible by two')
+        instr.put_metric('fizz', 6, is_prime='no', why='divisible by two')
 
         mock_client.put_metric_data.assert_called_with(
             Namespace='FizzBuzzAsAService',
@@ -79,3 +79,79 @@ class TestSSInstrumenation(object):
                 }
             ]
         )
+
+    @standard_mock
+    def test_simple_meter(self, mock_client):
+        with freeze_time(datetime.utcnow()) as frozen_datetime:
+            instr = self.create_instr()
+
+            instr.incr_meter('bps')
+            instr.incr_meter('bps')
+
+            frozen_datetime.tick(timedelta(seconds=1))
+
+            instr.incr_meter('bps')
+            instr.incr_meter('bps')
+
+            frozen_datetime.tick(timedelta(seconds=1))
+
+            instr.flush_meters()
+
+            mock_client.put_metric_data.assert_called_with(
+                Namespace='FizzBuzzAsAService',
+                MetricData=[
+                    {
+                        'MetricName': 'bps',
+                        'Value': 2,
+                        'Unit': 'Count/Second',
+                        'Timestamp': datetime.utcnow(),
+                        'Dimensions': []
+                    }
+                ]
+            )
+
+    @standard_mock
+    def test_meter_w_dims(self, mock_client):
+        with freeze_time(datetime.utcnow()) as frozen_datetime:
+            instr = self.create_instr()
+
+            instr.incr_meter('bps', is_prime='yes')
+            instr.incr_meter('bps', is_prime='no')
+
+            frozen_datetime.tick(timedelta(seconds=1))
+
+            instr.incr_meter('bps', is_prime='no')
+
+            frozen_datetime.tick(timedelta(seconds=1))
+
+            instr.flush_meters()
+
+            mock_client.put_metric_data.assert_called_with(
+                Namespace='FizzBuzzAsAService',
+                MetricData=[
+                    {
+                        'MetricName': 'bps',
+                        'Value': 0.5,
+                        'Unit': 'Count/Second',
+                        'Timestamp': datetime.utcnow(),
+                        'Dimensions': [
+                            {
+                                'Name': 'is_prime',
+                                'Value': 'yes',
+                            },
+                        ],
+                    },
+                    {
+                        'MetricName': 'bps',
+                        'Value': 1,
+                        'Unit': 'Count/Second',
+                        'Timestamp': datetime.utcnow(),
+                        'Dimensions': [
+                            {
+                                'Name': 'is_prime',
+                                'Value': 'no',
+                            },
+                        ],
+                    },
+                ]
+            )
