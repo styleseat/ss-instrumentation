@@ -56,7 +56,7 @@ class TestSSCloudwatchMetrics(object):
     @standard_mock
     def test_store_metric_with_dims(self, mock_client):
         metrics = self.create_metrics()
-        metrics.store_metric('fizz', 6, is_prime=False, why='divisible by two')
+        metrics.store_metric('fizz', 6, is_prime='no', why='divisible by two')
 
         mock_client.put_metric_data.assert_called_with(
             Namespace='FizzBuzzAsAService',
@@ -69,7 +69,7 @@ class TestSSCloudwatchMetrics(object):
                     'Dimensions': [
                         {
                             'Name': 'is_prime',
-                            'Value': False,
+                            'Value': 'no',
                         },
                         {
                             'Name': 'why',
