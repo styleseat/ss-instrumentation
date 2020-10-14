@@ -1,5 +1,7 @@
 *.pyc
 __pycache__/
+.tox/
+*.egg-info
 
 *.swp
 *.swo
