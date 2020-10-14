@@ -7,7 +7,7 @@ setup(name='ss_instrumentation',
       author='Some Dude at StyleSeat',
       packages=['ss_instrumentation'],
       install_requires = [
-          'boto3==1.15.16',
+          'boto3>1',
       ],
       zip_safe=True)
 
