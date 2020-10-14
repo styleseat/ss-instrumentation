@@ -6,6 +6,12 @@ from collections import defaultdict
 
 import boto3
 
+EPOCH = datetime.utcfromtimestamp(0)
+
+
+def unix_now():
+    return (datetime.utcnow() - EPOCH).total_seconds()
+
 
 def batch(iterable, n=1):
     count = len(iterable)
@@ -32,6 +38,9 @@ class MetricAndDims(object):
     def deserialize(cls, s):
         name, dims = json.loads(s)
         return cls(name, **dict(dims))
+
+    def __str__(self):
+        return self.serialize()
 
     def __eq__(self, other):
         if not isinstance(other, MetricAndDims):
@@ -68,6 +77,31 @@ class InMemoryMetricStorage(MetricStorage):
 
         self._start_time = datetime.utcnow()
         self._counts = defaultdict(int)
+
+        return values
+
+
+class RedisMetricStorage(MetricStorage):
+    def __init__(self, redis_client):
+        self._client = redis_client
+
+        if not self._client.exists('ssinstr:meter:periodstart'):
+            self._client.set('ssinstr:meter:periodstart', unix_now())
+
+    def incr(self, metric):
+        self._client.hincrby('ssinstr:meter:counts', metric.serialize(), 1)
+
+    def get_values_for_period(self):
+        duration = unix_now() - float(self._client.get('ssinstr:meter:periodstart'))
+        raw_counts = self._client.hgetall('ssinstr:meter:counts')
+        values = {}
+
+        for metric_str, count in raw_counts.items():
+            metric = MetricAndDims.deserialize(metric_str)
+            values[metric] = float(count) / duration
+
+        self._client.set('ssinstr:meter:periodstart', unix_now())
+        self._client.delete('ssinstr:meter:counts')
 
         return values
 
