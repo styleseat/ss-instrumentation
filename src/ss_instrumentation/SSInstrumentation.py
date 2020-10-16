@@ -8,8 +8,6 @@ from collections import defaultdict
 
 import boto3
 
-EPOCH = datetime.utcfromtimestamp(0)
-
 
 def batch(iterable, n=1):
     count = len(iterable)
