@@ -1,13 +1,15 @@
-from setuptools import setup
+from setuptools import (
+    find_packages,
+    setup,
+)
 
 setup(name='ss_instrumentation',
       version='0.1',
       description='',
       url='https://github.com/styleseat/ss-instrumentation',
       author='Some Dude at StyleSeat',
-      packages=['ss_instrumentation'],
-      install_requires = [
-          'boto3>1',
-      ],
+      packages=find_packages('src'),
+      package_dir={'': 'src'},
+      install_requires=['boto3>1'],
       zip_safe=True)
 
