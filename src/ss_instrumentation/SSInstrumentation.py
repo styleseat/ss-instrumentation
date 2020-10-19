@@ -1,16 +1,12 @@
 from __future__ import absolute_import
 
 import json
+import time
+from abc import ABCMeta, abstractmethod
 from datetime import datetime
 from collections import defaultdict
 
 import boto3
-
-EPOCH = datetime.utcfromtimestamp(0)
-
-
-def unix_now():
-    return (datetime.utcnow() - EPOCH).total_seconds()
 
 
 def batch(iterable, n=1):
@@ -53,10 +49,14 @@ class MetricAndDims(object):
 
 
 class MetricStorage(object):
-    def incr(metric):
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def incr(self, metric):
         raise NotImplementedError()
 
-    def get_values_for_period():
+    @abstractmethod
+    def pop_values_for_period(self):
         raise NotImplementedError()
 
 
@@ -68,7 +68,7 @@ class InMemoryMetricStorage(MetricStorage):
     def incr(self, metric):
         self._counts[metric] += 1
 
-    def get_values_for_period(self):
+    def pop_values_for_period(self):
         duration = (datetime.utcnow() - self._start_time).total_seconds()
         values = {}
 
@@ -86,13 +86,13 @@ class RedisMetricStorage(MetricStorage):
         self._client = redis_client
 
         if not self._client.exists('ssinstr:meter:periodstart'):
-            self._client.set('ssinstr:meter:periodstart', unix_now())
+            self._client.set('ssinstr:meter:periodstart', time.time())
 
     def incr(self, metric):
         self._client.hincrby('ssinstr:meter:counts', metric.serialize(), 1)
 
-    def get_values_for_period(self):
-        duration = unix_now() - float(self._client.get('ssinstr:meter:periodstart'))
+    def pop_values_for_period(self):
+        duration = time.time() - float(self._client.get('ssinstr:meter:periodstart'))
         raw_counts = self._client.hgetall('ssinstr:meter:counts')
         values = {}
 
@@ -100,7 +100,7 @@ class RedisMetricStorage(MetricStorage):
             metric = MetricAndDims.deserialize(metric_str)
             values[metric] = float(count) / duration
 
-        self._client.set('ssinstr:meter:periodstart', unix_now())
+        self._client.set('ssinstr:meter:periodstart', time.time())
         self._client.delete('ssinstr:meter:counts')
 
         return values
@@ -157,7 +157,7 @@ class SSInstrumentation(object):
         )
 
     def flush_meters(self):
-        values = self._storage.get_values_for_period()
+        values = self._storage.pop_values_for_period()
 
         if not values:
             return
