@@ -1,0 +1,31 @@
+service: ss-instrumentation-flusher
+
+provider:
+  name: aws
+  runtime: python3.7
+  environment:
+    REDIS_HOST: ${env:REDIS_HOST}
+    REDIS_PORT: ${env:REDIS_PORT}
+    REDIS_DB: ${env:REDIS_DB}
+    AWS_METRIC_NAMESPACE: ${env:AWS_METRIC_NAMESPACE}
+    AWS_LOGGING_REGION: ${env:AWS_LOGGING_REGION}
+
+  vpc:
+    securityGroupIds:
+      - ${env:AWS_SECURITY_GROUP_ID}
+
+    subnetIds:
+      - ${env:AWS_SUBNET_ID}
+
+package:
+  include:
+    - src/**
+
+functions:
+  flusher:
+    handler: flusher.flush
+    events:
+      - schedule: rate(1 minute)
+
+plugins:
+  - serverless-python-requirements

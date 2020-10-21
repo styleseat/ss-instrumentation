@@ -1,7 +1,9 @@
 *.pyc
 __pycache__/
-.tox/
-*.egg-info
 
 *.swp
 *.swo
+
+.tox/
+*.egg-info
+.serverless/
