@@ -13,7 +13,45 @@ jobs:
       - run: pip install tox
       - run: tox
 
+  deploy_stage:
+    docker:
+      - image: circleci/node:10.8
+    steps:
+      - checkout
+      - run: npm install -g serverless
+      - run: npm install serverless-python-requirements
+      - run: REDIS_HOST="$STAGE_REDIS_HOST" AWS_METRIC_NAMESPACE="stage" serverless deploy
+
+  deploy_prod:
+    docker:
+      - image: circleci/node:10.8
+    steps:
+      - checkout
+      - run: npm install -g serverless
+      - run: npm install serverless-python-requirements
+      - run: REDIS_HOST="$PROD_REDIS_HOST" AWS_METRIC_NAMESPACE="prod" serverless deploy
+
 workflows:
   test:
     jobs:
       - toxtest
+      - merge_hold:
+          type: approval
+          filters:
+            branches:
+              only:
+                - master
+      - deploy_stage:
+          requires:
+            - merge_hold
+          filters:
+            branches:
+              only:
+                - master
+      - deploy_prod:
+          requires:
+            - merge_hold
+          filters:
+            branches:
+              only:
+                - master
