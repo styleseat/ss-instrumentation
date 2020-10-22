@@ -15,23 +15,27 @@ jobs:
       - image: cimg/node:14.14
     steps:
       - checkout
+      - run: sudo apt update && sudo apt install software-properties-common && sudo add-apt-repository ppa:deadsnakes/ppa
+      - run: sudo apt install python3-pip && sudo apt install python3.7 && python3.7 -m pip install pip
       - run: npm ci
-      - run: REDIS_HOST="$STAGE_REDIS_HOST" AWS_METRIC_NAMESPACE="stage" npm run deploy
+      - run: REDIS_HOST="$STAGE_REDIS_HOST" AWS_METRIC_NAMESPACE="stage" npm run deploy -- --stage stage
 
   deploy_prod:
     docker:
       - image: cimg/node:14.14
     steps:
       - checkout
+      - run: sudo apt update && sudo apt install software-properties-common && sudo add-apt-repository ppa:deadsnakes/ppa
+      - run: sudo apt install python3-pip && sudo apt install python3.7 && python3.7 -m pip install pip
       - run: npm ci
-      - run: REDIS_HOST="$PROD_REDIS_HOST" AWS_METRIC_NAMESPACE="prod" npm run deploy
+      - run: REDIS_HOST="$PROD_REDIS_HOST" AWS_METRIC_NAMESPACE="prod" npm run deploy -- --stage prod
 
 workflows:
   version: 2
   ss_instrumentation:
     jobs:
       - toxtest
-      - merge_hold:
+      - deploy_hold:
           type: approval
           filters:
             branches:
@@ -39,14 +43,14 @@ workflows:
                 - master
       - deploy_stage:
           requires:
-            - merge_hold
+            - deploy_hold
           filters:
             branches:
               only:
                 - master
       - deploy_prod:
           requires:
-            - merge_hold
+            - deploy_hold
           filters:
             branches:
               only:
