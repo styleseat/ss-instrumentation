@@ -31,22 +31,12 @@ workflows:
   ss_instrumentation:
     jobs:
       - toxtest
-      - merge_hold:
-          type: approval
-          filters:
-            branches:
-              only:
-                - master
       - deploy_stage:
-          requires:
-            - merge_hold
           filters:
             branches:
               only:
                 - master
       - deploy_prod:
-          requires:
-            - merge_hold
           filters:
             branches:
               only:
