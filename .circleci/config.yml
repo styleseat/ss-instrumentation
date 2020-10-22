@@ -35,5 +35,23 @@ workflows:
   ss_instrumentation:
     jobs:
       - toxtest
-      - deploy_stage
-      - deploy_prod
+      - deploy_hold:
+          type: approval
+          filters:
+            branches:
+              only:
+                - master
+      - deploy_stage:
+          requires:
+            - deploy_hold
+          filters:
+            branches:
+              only:
+                - master
+      - deploy_prod:
+          requires:
+            - deploy_hold
+          filters:
+            branches:
+              only:
+                - master
