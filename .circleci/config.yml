@@ -10,6 +10,12 @@ jobs:
       - run: pip install tox
       - run: tox
 
+  foobar:
+    docker:
+      - image: themattrix/tox
+    steps:
+      - run: echo "howdy friend"
+
   deploy_stage:
     docker:
       - image: cimg/node:14.14
@@ -29,9 +35,11 @@ jobs:
       - run: REDIS_HOST="$PROD_REDIS_HOST" AWS_METRIC_NAMESPACE="prod" serverless deploy
 
 workflows:
-  test:
+  version: 2
+  ss_instrumentation:
     jobs:
       - toxtest
+      - foobar
       - merge_hold:
           type: approval
           filters:
