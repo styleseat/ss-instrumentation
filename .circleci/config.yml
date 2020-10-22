@@ -10,12 +10,6 @@ jobs:
       - run: pip install tox
       - run: tox
 
-  foobar:
-    docker:
-      - image: themattrix/tox
-    steps:
-      - run: echo "howdy friend"
-
   deploy_stage:
     docker:
       - image: cimg/node:14.14
@@ -37,7 +31,6 @@ workflows:
   ss_instrumentation:
     jobs:
       - toxtest
-      - foobar
       - merge_hold:
           type: approval
           filters:
