@@ -20,6 +20,10 @@ provider:
 package:
   include:
     - src/**
+  exclude:
+    - node_modules/**
+    - .tox/**
+    - .serverless/**
 
 functions:
   flusher:
