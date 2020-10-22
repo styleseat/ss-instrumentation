@@ -1,4 +1,5 @@
 import redis
+import time
 from os import environ
 
 from src.ss_instrumentation import (
@@ -24,8 +25,12 @@ def flush(event, context):
     instr = SSInstrumentation(config, storage)
 
     print('About to flush meters')
+    tic = time.time()
+
     instr.flush_meters()
-    print('Flushed, sending response')
+    toc = time.time()
+
+    print('Flushed in %f seconds' % (tic - toc))
 
     return {
         "statusCode": 200,
