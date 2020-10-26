@@ -13,15 +13,13 @@ jobs:
   deploy_stage:
     docker:
       - image: cimg/node:14.14
-    context:
-      - global
     steps:
       - checkout
       - run: sudo apt update && sudo apt install software-properties-common && sudo add-apt-repository ppa:deadsnakes/ppa
       - run: sudo apt install python3-pip && sudo apt install python3.7 && python3.7 -m pip install pip
       - run: npm ci
       - run:
-        name: Serverless Deploy
+        name: Serverless Deploy (stage)
         command: |
           export REDIS_HOST="$STAGE_REDIS_HOST"
           export AWS_METRIC_NAMESPACE="stage"
@@ -32,15 +30,13 @@ jobs:
   deploy_prod:
     docker:
       - image: cimg/node:14.14
-    context:
-      - global
     steps:
       - checkout
       - run: sudo apt update && sudo apt install software-properties-common && sudo add-apt-repository ppa:deadsnakes/ppa
       - run: sudo apt install python3-pip && sudo apt install python3.7 && python3.7 -m pip install pip
       - run: npm ci
       - run:
-        name: Serverless Deploy
+        name: Serverless Deploy (prod)
         command: |
           export REDIS_HOST="$PROD_REDIS_HOST"
           export AWS_METRIC_NAMESPACE="prod"
@@ -62,6 +58,8 @@ workflows:
       - deploy_stage:
           requires:
             - deploy_hold
+          context:
+            - global
           filters:
             branches:
               only:
@@ -69,6 +67,8 @@ workflows:
       - deploy_prod:
           requires:
             - deploy_hold
+          context:
+            - global
           filters:
             branches:
               only:
