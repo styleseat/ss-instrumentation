@@ -30,7 +30,7 @@ def flush(event, context):
     instr.flush_meters()
     toc = time.time()
 
-    print('Flushed in %f seconds' % (tic - toc))
+    print('Flushed in %f seconds' % (toc - tic))
 
     return {
         "statusCode": 200,

@@ -13,22 +13,40 @@ jobs:
   deploy_stage:
     docker:
       - image: cimg/node:14.14
+    context:
+      - global
     steps:
       - checkout
       - run: sudo apt update && sudo apt install software-properties-common && sudo add-apt-repository ppa:deadsnakes/ppa
       - run: sudo apt install python3-pip && sudo apt install python3.7 && python3.7 -m pip install pip
       - run: npm ci
-      - run: REDIS_HOST="$STAGE_REDIS_HOST" AWS_METRIC_NAMESPACE="stage" npm run deploy -- --stage stage
+      - run:
+        name: Serverless Deploy
+        command: |
+          export REDIS_HOST="$STAGE_REDIS_HOST"
+          export AWS_METRIC_NAMESPACE="stage"
+          export AWS_ACCESS_KEY_ID="$CIRCLECI_AWS_ACCESS_KEY_ID"
+          export AWS_SECRET_ACCESS_KEY="$CIRCLECI_AWS_SECRET_ACCESS_KEY"
+          npm run deploy -- --stage stage
 
   deploy_prod:
     docker:
       - image: cimg/node:14.14
+    context:
+      - global
     steps:
       - checkout
       - run: sudo apt update && sudo apt install software-properties-common && sudo add-apt-repository ppa:deadsnakes/ppa
       - run: sudo apt install python3-pip && sudo apt install python3.7 && python3.7 -m pip install pip
       - run: npm ci
-      - run: REDIS_HOST="$PROD_REDIS_HOST" AWS_METRIC_NAMESPACE="prod" npm run deploy -- --stage prod
+      - run:
+        name: Serverless Deploy
+        command: |
+          export REDIS_HOST="$PROD_REDIS_HOST"
+          export AWS_METRIC_NAMESPACE="prod"
+          export AWS_ACCESS_KEY_ID="$CIRCLECI_AWS_ACCESS_KEY_ID"
+          export AWS_SECRET_ACCESS_KEY="$CIRCLECI_AWS_SECRET_ACCESS_KEY"
+          npm run deploy -- --stage prod
 
 workflows:
   version: 2
