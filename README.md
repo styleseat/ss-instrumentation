@@ -59,3 +59,7 @@ constitute two separate meters, rates are counted independently and are reported
 ## Flushing Meters
 
 Meters record the rate of an event over a period of time. To report the rate of a meter to cloudwatch, meters must be "flushed" (frequencies over the period calculated and sent to cloudwatch). This is done by calling the `flush_meters()` method of `SSInstrumenation`. While rates over irregular periods will be calculated accurately, this method should be called regularly so that spikes or dips in rates are not smoothed out over a long reporting period. It is the responsibility of consumers of this library to arrange for `flush_meters()` to be called at a regular interval, once to twice a minute is recommended for standard resolution metrics.
+
+## Flushing Lambda
+
+The serverless project included at the root level of this repo orchestrates calling the flush function periodically. Deployment is done via circle, after releasing a merge hold.
