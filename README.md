@@ -51,10 +51,45 @@ It's important to note that dimension names and values are part of a meter/metri
 
 ```
 instance.incr_meter('foo', is_bar='yes')
-instance.incr_meter('foo', is_bar='no)
+instance.incr_meter('foo', is_bar='no')
 ```
 
 constitute two separate meters, rates are counted independently and are reported to couldwatch separately, and they will appear in the cloudwatch UI as separate metrics. As a result you'll want to keep the set of unique dimension/value pairs for a given metric name to a relatively small, closed set. For example, in a meter tracking the rate of login attempts to a service, success or failure of a login attempt may be a reasonable dimension to include (resulting in success and failure rates being reported independently, although calculating a sum over multiple metrics is possible in the cloudwatch UI), but the IP address of a client attempting login would lead to an unmanageable proliferation of metrics.
+
+## Best Practices when Adding a Meter
+
+These are some recommendations for setting up meters to instrument a codebase. They won't always be applicable, the thing to keep in mind is that a meter should give insight into what's happening in the application, the data we get back from meters should be alarm-able, either when at exceptionally low or high volumes. Measuring something where any value indicates normal operation doesn't tell us anything about what's happening.
+
+
+### Where/When to Instrument
+
+The object of this project is to monitor system health/detect exceptional behavior rather than provide business insight. If you can't identify when a certain volume of an event represents a situation that needs to be acted on by engineering, consider different tracking options.
+
+When metering an activity, try to keep the reporting as close to the thing being metered as possible. When you are metering an event, make sure that the meter is incremented every time that event happens (check for alternative code paths that could make the same event happen without the meter being incremented) and that erroring out of a code path leading to the event does not cause that event to be reported (or report the event as having failed in that case).
+
+### Naming
+
+Purely for organizational purposes, metric names should be organized hierarchically with `.` separating parts of the hierarchy.
+
+The first component of a metric name should report where the event is happening. For example, if a metric is being reported from a Django view, it should start with `web`, if it's happening in a task it should start with `task`. For metrics in utility functions/model methods that could be called either in the request/response cycle or from a task, use the generic `backend` and consider adding a dimension if where the metric reporting is being called from seems significant (e.g. auto vs. instant payout).
+
+The last component of a metric name should indicate what is happening, e.g. `login_attempted` when a user attempts to log in.
+
+Intermediary components may be included to conceptually group together related events, e.g. `web.appointment.created` and `web.appointment.rescheduled`. Intermediary components are not required if there aren't conceptually related events.
+
+All parts of a metric name should be in snake case (lowercase, underscores to separate words). The last component of a metric should be phrased in the last tense, e.g. prefer `checkout_completed` to `checkout_complete`.
+
+### Dimensions
+
+Each unique set of dimensions/values create a separately tracked metric. Information like pro or client IDs, payment information, or information that goes into business logic like appointment counts, which we usually include in tracking, should not be included as dimensions as this would result in e.g. a metric per pro/client.
+
+If the event tracked by a metric only has one logical result, no dimensions need to be specified. In cases where the same logical action can produce one of a few possible results, each result should increment a meter with the same name, and a `result` dimension should be included to indicate the outcome. For example, the `web.login_attempted` meter's `result` dimension will be one of `ip-rate-limited`, `global-rate-limited`, `mfa-block`, `bad-credentials`, or `success`.
+
+### I've instrumented a piece of code, now what?
+
+Either add an alarm, or add the metric to a dashboard, or both. You can add an alarm [here](https://us-east-1.console.aws.amazon.com/cloudwatch/home?region=us-east-1#alarmsV2:create). If you know what reasonable numbers are for the meter (looking at tracking can help here) then set a static threshold, if you have no idea then you can use the anomaly detection condition and specify a number of standard deviations that represent normal operation. It's OK to guess at what a reasonable threshold is, if you're adding a new metric erring on the side of caution and alarming more actively is fine as this can be adjusted later. When adding an alarm include a description, what situation would cause it, and remediation steps if known. Add a link in the description if it doesn't fit in 1024 characters.
+
+When adding an alarm drop a line in the #eng-on-call-rotation channel to help the on-call engineer knows that the alarm is new and may need to be tuned. 
 
 ## Flushing Meters
 
