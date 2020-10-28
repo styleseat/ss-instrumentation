@@ -71,7 +71,7 @@ When metering an activity, try to keep the reporting as close to the thing being
 
 Purely for organizational purposes, metric names should be organized hierarchically with `.` separating parts of the hierarchy.
 
-The first component of a metric name should report where the event is happening. For example, if a metric is being reported from a Django view, it should start with `web`, if it's happening in a task it should start with `task`. For metrics in utility functions/model methods that could be called either in the request/response cycle or from a task, use the generic `backend` and consider adding a dimension if where the metric reporting is being called from seems significant (e.g. auto vs. instant payout).
+The first component of a metric name should report where the event is happening. For example, if a metric is being reported from an API endpoint, it should start with `web`, if it's happening in a task it should start with `task`. For metrics in utility functions/model methods that could be called either in the request/response cycle or from a task, use the generic `backend` and consider adding a dimension if where the metric reporting is being called from seems significant (e.g. auto vs. instant payout).
 
 The last component of a metric name should indicate what is happening, e.g. `login_attempted` when a user attempts to log in.
 
