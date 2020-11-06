@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 
 from freezegun import freeze_time
 import mock
+import pytest
 
 from ss_instrumentation import (
     SSInstrumentation,
@@ -95,6 +96,7 @@ class TestSSInstrumenation(object):
             }
         )
 
+    @pytest.mark.skip(reason='We\'re trying this out without the redis part')
     @standard_mock
     def test_simple_meter(self, mock_client):
         with freeze_time(datetime.utcnow()) as frozen_datetime:
@@ -125,6 +127,7 @@ class TestSSInstrumenation(object):
                 ]
             )
 
+    @pytest.mark.skip(reason='We\'re trying this out without the redis part')
     @standard_mock
     def test_meter_w_dims(self, mock_client):
         with freeze_time(datetime.utcnow()) as frozen_datetime:
