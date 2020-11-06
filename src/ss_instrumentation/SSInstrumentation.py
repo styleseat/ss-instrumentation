@@ -119,8 +119,9 @@ class SSInstrumentation(object):
             self._storage = InMemoryMetricStorage()
 
     def incr_meter(self, metric_name, **dims):
-        metric = MetricAndDims(metric_name, **dims)
-        self._storage.incr(metric)
+        # metric = MetricAndDims(metric_name, **dims)
+        # self._storage.incr(metric)
+        self.put_metric(metric_name, 1, **dims)
 
     def put_metric(self, metric_name, value, **kwargs):
         data = {
