@@ -112,7 +112,7 @@ class SSInstrumentation(object):
 
     def __init__(self, config, storage=None):
         self.namespace = config['AWS_METRIC_NAMESPACE']
-        self.client = boto3.client('cloudwatch', Config(
+        self.client = boto3.client('cloudwatch', config=Config(
             connect_timeout=3,
             read_timeout=3,
             retries={'max_attempts': 0},
