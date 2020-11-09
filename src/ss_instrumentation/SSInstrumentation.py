@@ -7,6 +7,7 @@ from datetime import datetime
 from collections import defaultdict
 
 import boto3
+from botocore.client import Config
 
 
 def batch(iterable, n=1):
@@ -111,7 +112,12 @@ class SSInstrumentation(object):
 
     def __init__(self, config, storage=None):
         self.namespace = config['AWS_METRIC_NAMESPACE']
-        self.client = boto3.client('cloudwatch', region_name=config['AWS_LOGGING_REGION'])
+        self.client = boto3.client('cloudwatch', Config(
+            connect_timeout=3,
+            read_timeout=3,
+            retries={'max_attempts': 0},
+            region_name=config['AWS_LOGGING_REGION']
+        ))
 
         if storage:
             self._storage = storage
@@ -135,7 +141,11 @@ class SSInstrumentation(object):
         return self.put_metrics([data])
 
     def put_metrics(self, metrics):
-        """Store multiple metrics in CloudWatch"""
+        """
+        Store multiple metrics in CloudWatch. May fail in various ways, returns
+        True on success but in most contexts you won't want to retry or even
+        bother to check the return value.
+        """
         metrics_data = []
         for metric in metrics:
             metric_data = {
@@ -152,10 +162,14 @@ class SSInstrumentation(object):
 
             metrics_data.append(metric_data)
 
-        self.client.put_metric_data(
-            Namespace=self.namespace,
-            MetricData=metrics_data
-        )
+        try:
+            self.client.put_metric_data(
+                Namespace=self.namespace,
+                MetricData=metrics_data
+            )
+            return True
+        except Exception:
+            return False
 
     def flush_meters(self):
         values = self._storage.pop_values_for_period()
