@@ -52,7 +52,12 @@ class TestSSInstrumenation(object):
     @mock.patch('boto3.client')
     def test_client_config(self, mock_client_constructor):
         self.create_instr()
-        mock_client_constructor.assert_called_with('cloudwatch', region_name='us-west-2')
+        client_name, config = mock_client_constructor.call_args.args
+        assert client_name == 'cloudwatch'
+        assert config.connect_timeout == 3
+        assert config.read_timeout == 3
+        assert config.retries['max_attempts'] == 0
+        assert config.region_name == 'us-west-2'
 
     @standard_mock
     def test_put_metric(self, mock_client):
