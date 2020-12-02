@@ -24,11 +24,12 @@ def standard_mock(f):
 
 @freeze_time('1984-08-06')
 class TestSSInstrumenation(object):
-    def create_instr(self):
+    def create_instr(self, config_override={}):
         config = {
             'AWS_METRIC_NAMESPACE': 'FizzBuzzAsAService',
             'AWS_LOGGING_REGION': 'us-west-2',
         }
+        config.update(config_override)
 
         return SSInstrumentation(config)
 
@@ -52,12 +53,28 @@ class TestSSInstrumenation(object):
     @mock.patch('boto3.client')
     def test_client_config(self, mock_client_constructor):
         self.create_instr()
-        client_name, config = mock_client_constructor.call_args.args
+        client_name = mock_client_constructor.call_args.args[0]
+        config = mock_client_constructor.call_args.kwargs['config']
         assert client_name == 'cloudwatch'
-        assert config.connect_timeout == 3
-        assert config.read_timeout == 3
+        assert config.connect_timeout == 1
+        assert config.read_timeout == 1
         assert config.retries['max_attempts'] == 0
         assert config.region_name == 'us-west-2'
+
+    @mock.patch('boto3.client')
+    def test_custom_client_config(self, mock_client_constructor):
+        self.create_instr({
+            'BOTO_CONNECT_TIMEOUT': 42,
+            'BOTO_READ_TIMEOUT': 7,
+            'AWS_LOGGING_REGION': 'us-east-1'
+        })
+        client_name = mock_client_constructor.call_args.args[0]
+        config = mock_client_constructor.call_args.kwargs['config']
+        assert client_name == 'cloudwatch'
+        assert config.connect_timeout == 42
+        assert config.read_timeout == 7
+        assert config.retries['max_attempts'] == 0
+        assert config.region_name == 'us-east-1'
 
     @standard_mock
     def test_put_metric(self, mock_client):

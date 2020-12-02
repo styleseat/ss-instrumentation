@@ -4,7 +4,7 @@ from setuptools import (
 )
 
 setup(name='ss_instrumentation',
-      version='1.2.0',
+      version='1.2.3',
       description='',
       url='https://github.com/styleseat/ss-instrumentation',
       author='Some Dude at StyleSeat',
