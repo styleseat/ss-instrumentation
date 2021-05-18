@@ -20,7 +20,8 @@
   },
   "homepage": "https://github.com/styleseat/ss-instrumentation#readme",
   "dependencies": {
-    "serverless": "^2.8.0",
+    "lodash": "^4.17.21",
+    "serverless": "^2.41.2",
     "serverless-python-requirements": "^5.1.0"
   }
 }
