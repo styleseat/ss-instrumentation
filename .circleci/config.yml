@@ -51,6 +51,8 @@ workflows:
       - toxtest
       - deploy_hold:
           type: approval
+          requires:
+            - toxtest
           filters:
             branches:
               only:
