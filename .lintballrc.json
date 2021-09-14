@@ -43,6 +43,7 @@
     "*/.pytest_cache",
     "*/.coverage_report",
     "*/venv/*",
-    "*/src/*"
+    "*/src/*",
+    "*/.tox/*"
   ]
 }
