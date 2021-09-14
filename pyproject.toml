@@ -15,8 +15,7 @@ ignore = "E203,E501,W6"
 [tool.isort]
 profile = "black"
 py_version = "all"
-known_first_party = "styleseat"
-known_third_party = ["satchless", "pyzipcode", "inflect"]
+known_first_party = ["src", "ss_instrumentation", "SSInstrumentation"]
 # line_length is intentionally small, to ensure each imported object gets its
 # own line.
 line_length = 10
