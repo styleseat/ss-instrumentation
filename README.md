@@ -89,7 +89,7 @@ If the event tracked by a metric only has one logical result, no dimensions need
 
 Either add an alarm, or add the metric to a dashboard, or both. You can add an alarm [here](https://us-east-1.console.aws.amazon.com/cloudwatch/home?region=us-east-1#alarmsV2:create). If you know what reasonable numbers are for the meter (looking at tracking can help here) then set a static threshold, if you have no idea then you can use the anomaly detection condition and specify a number of standard deviations that represent normal operation. It's OK to guess at what a reasonable threshold is, if you're adding a new metric erring on the side of caution and alarming more actively is fine as this can be adjusted later. When adding an alarm include a description, what situation would cause it, and remediation steps if known. Add a link in the description if it doesn't fit in 1024 characters.
 
-When adding an alarm drop a line in the #eng-on-call-rotation channel to help the on-call engineer knows that the alarm is new and may need to be tuned. 
+When adding an alarm drop a line in the #eng-on-call-rotation channel to help the on-call engineer knows that the alarm is new and may need to be tuned.
 
 ## Flushing Meters
 
@@ -98,3 +98,18 @@ Meters record the rate of an event over a period of time. To report the rate of 
 ## Flushing Lambda
 
 The serverless project included at the root level of this repo orchestrates calling the flush function periodically. Deployment is done via circle, after releasing a merge hold.
+
+## Linting & formatting
+
+We use [lintball](https://github.com/elijahr/lintball) for linting to fix any auto-fixable issues via a git pre-commit hook. This runs `docformatter`, `autopep8`, `isort`, and `black`, in order.
+
+To set up lintball locally:
+
+```
+brew install bash                             # bash v5 or greater required
+npm install -g lintball                       # Install lintball
+lintball install-tools py                     # Install Python formatters
+git config --local core.hooksPath .githooks   # Enable hooks in .githooks dir
+```
+
+This will format your committed files properly at the time of commit and is considered best practice.
