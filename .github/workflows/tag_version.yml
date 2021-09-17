@@ -1,0 +1,23 @@
+name: Tag version
+
+on:
+  push:
+    branches:
+      - release
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+
+      - name: Parse package version
+        id: package-version
+        run: |
+          echo "::set-output name=version::$(python setup.py --version)"
+
+      - name: Push tag
+        uses: laputansoft/github-tag-action@v4.6
+        with:
+          github_token: ${{ env.github-token }}
+          tag: ${{ steps.package-version.outputs.version }}
