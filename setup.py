@@ -3,12 +3,18 @@ from setuptools import (
     setup,
 )
 
+from src.ss_instrumentation import (
+    __version__,
+)
+
 setup(
     name="ss_instrumentation",
-    version="2.0.0",
-    description="",
+    version=__version__,
+    description=(
+        "A light wrapper around the boto3 cloudwatch client intended for reporting custom metrics to cloudwatch."
+    ),
     url="https://github.com/styleseat/ss-instrumentation",
-    author="Some Dude at StyleSeat",
+    author="StyleSeat Engineering",
     packages=find_packages("src"),
     package_dir={"": "src"},
     install_requires=["boto3>1"],
