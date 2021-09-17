@@ -22,3 +22,4 @@ PR Checklist
 ---
 - [ ] Unit tests have been added and the test suite passes.
 - [ ] README and/or Confluence documentation has been updated, if needed.
+- [ ] Version in `setup.py` has been bumped according to [semantic versioning](https://semver.org/).
