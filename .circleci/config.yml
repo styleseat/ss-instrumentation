@@ -58,7 +58,7 @@ workflows:
           filters:
             branches:
               only:
-                - master
+                - release
       - deploy_stage:
           requires:
             - deploy_hold
@@ -67,7 +67,7 @@ workflows:
           filters:
             branches:
               only:
-                - master
+                - release
       - deploy_prod:
           requires:
             - deploy_hold
@@ -76,4 +76,4 @@ workflows:
           filters:
             branches:
               only:
-                - master
+                - release
