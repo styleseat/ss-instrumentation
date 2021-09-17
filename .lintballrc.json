@@ -23,7 +23,7 @@
     "rubocop": false,
     "shellcheck": false,
     "shfmt": false,
-    "yamllint": false
+    "yamllint": true
   },
   "ignores": [
     "*/.git/*",
