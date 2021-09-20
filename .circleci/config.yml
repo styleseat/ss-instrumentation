@@ -30,18 +30,18 @@ jobs:
           git reset --hard origin/release
           git merge --no-edit origin/dev
           git merge --no-edit origin/voy-610
-          git commit --amend -m "v$VERSION [skip ci]"
+          npm version "$VERSION" && git commit --amend -m "v$VERSION [skip ci]" || true # Update & commit package.json
           git push origin release
-
-          # Create tag
-          git tag "v$VERSION"
-          git push origin "v$VERSION"
 
           # Merge back to dev branch
           git checkout dev
           git reset --hard origin/dev
           git merge --no-edit --no-commit origin/release
           git push origin dev
+
+          # Create tag if doesn't exist
+          git tag "v$VERSION" || true
+          git push origin "v$VERSION" || true
 
   deploy_stage:
     docker:
