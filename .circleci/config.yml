@@ -12,6 +12,22 @@ jobs:
       - run: pip install tox
       - run: tox
 
+  release:
+    docker:
+      - image: cimg/node:14.14
+    steps:
+      - checkout
+      - run: |
+          set -eux
+          git config --global user.name "CircleCI"
+          git config --global user.email "engineering@styleseat.com"
+          git checkout release
+          git reset --hard origin/release
+          git merge --no-edit origin/dev
+          git tag v$(python setup.py --version)
+          git push origin v$(python setup.py --version)
+          git push origin release
+
   deploy_stage:
     docker:
       - image: cimg/node:14.14
@@ -51,6 +67,23 @@ workflows:
   ss_instrumentation:
     jobs:
       - toxtest
+      - release_hold:
+          type: approval
+          requires:
+            - toxtest
+          filters:
+            branches:
+              only:
+                - dev
+      - release:
+          requires:
+            - release_hold
+          context:
+            - global
+          filters:
+            branches:
+              only:
+                - dev
       - deploy_hold:
           type: approval
           requires:
