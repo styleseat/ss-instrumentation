@@ -9,29 +9,34 @@ jobs:
       - image: themattrix/tox
     steps:
       - checkout
-      - run: pip install tox
-      - run: tox
+      # - run: pip install tox
+      # - run: tox
 
   release:
     docker:
       - image: cimg/node:14.14
     steps:
       - checkout
+      - run: sudo apt update && sudo apt install software-properties-common && sudo add-apt-repository ppa:deadsnakes/ppa
+      - run: sudo apt install python3-pip && sudo apt install python3.8 && python3.8 -m pip install pip
       - run: |
-          set -eux
+          set -euxo pipefail
+
           git config --global user.name "CircleCI"
           git config --global user.email "engineering@styleseat.com"
+
+          VERSION=$(python3 setup.py --version)
 
           # Update release branch
           git checkout release
           git reset --hard origin/release
           git merge --no-edit origin/dev
           git merge --no-edit origin/voy-610
-          git commit --amend -m "$(python setup.py --version) [skip ci]"
+          git commit --amend -m "v$VERSION [skip ci]"
 
           # Create tag
-          git tag v$(python setup.py --version)
-          git push origin v$(python setup.py --version)
+          git tag "v$VERSION"
+          git push origin "v$VERSION"
           git push origin release
 
           # Merge back to dev branch
@@ -45,9 +50,8 @@ jobs:
       - image: cimg/node:14.14
     steps:
       - checkout
-      - run: sudo apt update && sudo apt install software-properties-common && sudo add-apt-repository ppa:deadsnakes/ppa
-      - run: sudo apt install python3-pip && sudo apt install python3.8 && python3.8 -m pip install pip
-      - run: npm ci
+      - run: sudo apt update && sudo apt-get -y install software-properties-common && sudo add-apt-repository -y ppa:deadsnakes/ppa
+      - run: sudo apt-get -y install python3-pip python3.8 && python3.8 -m pip install pip
       - run:
           name: Serverless Deploy (stage)
           command: |
@@ -62,8 +66,8 @@ jobs:
       - image: cimg/node:14.14
     steps:
       - checkout
-      - run: sudo apt update && sudo apt install software-properties-common && sudo add-apt-repository ppa:deadsnakes/ppa
-      - run: sudo apt install python3-pip && sudo apt install python3.8 && python3.8 -m pip install pip
+      - run: sudo apt update && sudo apt-get -y install software-properties-common && sudo add-apt-repository -y ppa:deadsnakes/ppa
+      - run: sudo apt-get -y install python3-pip python3.8 && python3.8 -m pip install pip
       - run: npm ci
       - run:
           name: Serverless Deploy (prod)
