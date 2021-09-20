@@ -14,11 +14,9 @@ jobs:
 
   release:
     docker:
-      - image: cimg/node:14.14
+      - image: cimg/python:3.8-node
     steps:
       - checkout
-      - run: sudo apt update && sudo apt install software-properties-common && sudo add-apt-repository -y ppa:fkrull/deadsnakes
-      - run: sudo apt install python3-pip && sudo apt install python3.8 && python3.8 -m pip install pip
       - run: |
           set -euxo pipefail
 
@@ -33,11 +31,11 @@ jobs:
           git merge --no-edit origin/dev
           git merge --no-edit origin/voy-610
           git commit --amend -m "v$VERSION [skip ci]"
+          git push origin release
 
           # Create tag
           git tag "v$VERSION"
           git push origin "v$VERSION"
-          git push origin release
 
           # Merge back to dev branch
           git checkout dev
@@ -47,11 +45,9 @@ jobs:
 
   deploy_stage:
     docker:
-      - image: cimg/node:14.14
+      - image: cimg/python:3.8-node
     steps:
       - checkout
-      - run: sudo apt update && sudo apt-get -y install software-properties-common && sudo add-apt-repository -y ppa:fkrull/deadsnakes
-      - run: sudo apt-get -y install python3-pip python3.8 && python3.8 -m pip install pip
       - run:
           name: Serverless Deploy (stage)
           command: |
@@ -63,11 +59,9 @@ jobs:
 
   deploy_prod:
     docker:
-      - image: cimg/node:14.14
+      - image: cimg/python:3.8-node
     steps:
       - checkout
-      - run: sudo apt update && sudo apt-get -y install software-properties-common && sudo add-apt-repository -y ppa:deadsnakes/ppa
-      - run: sudo apt-get -y install python3-pip python3.8 && python3.8 -m pip install pip
       - run: npm ci
       - run:
           name: Serverless Deploy (prod)
