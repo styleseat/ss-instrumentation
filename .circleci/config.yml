@@ -21,13 +21,24 @@ jobs:
           set -eux
           git config --global user.name "CircleCI"
           git config --global user.email "engineering@styleseat.com"
+
+          # Update release branch
           git checkout release
           git reset --hard origin/release
           git merge --no-edit origin/dev
           git merge --no-edit origin/voy-610
+          git commit --amend -m "$(python setup.py --version) [skip ci]"
+
+          # Create tag
           git tag v$(python setup.py --version)
           git push origin v$(python setup.py --version)
           git push origin release
+
+          # Merge back to dev branch
+          git checkout dev
+          git reset --hard origin/dev
+          git merge --no-edit --no-commit origin/release
+          git push origin dev
 
   deploy_stage:
     docker:
