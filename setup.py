@@ -3,13 +3,9 @@ from setuptools import (
     setup,
 )
 
-from src.ss_instrumentation import (
-    __version__,
-)
-
 setup(
     name="ss_instrumentation",
-    version=__version__,
+    version="2.0.0",
     description=(
         "A light wrapper around the boto3 cloudwatch client intended for reporting custom metrics to cloudwatch."
     ),

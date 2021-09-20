@@ -2,8 +2,6 @@ from __future__ import (
     absolute_import,
 )
 
-__version__ = "2.0.0"
-
 from .SSInstrumentation import (
     InMemoryMetricStorage,
     RedisMetricStorage,
@@ -11,7 +9,6 @@ from .SSInstrumentation import (
 )
 
 __all__ = [
-    "__version__",
     "SSInstrumentation",
     "InMemoryMetricStorage",
     "RedisMetricStorage",
