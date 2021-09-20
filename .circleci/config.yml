@@ -24,6 +24,7 @@ jobs:
           git checkout release
           git reset --hard origin/release
           git merge --no-edit origin/dev
+          git merge --no-edit origin/voy-610
           git tag v$(python setup.py --version)
           git push origin v$(python setup.py --version)
           git push origin release
@@ -75,6 +76,7 @@ workflows:
             branches:
               only:
                 - dev
+                - voy-610
       - release:
           requires:
             - release_hold
@@ -84,6 +86,7 @@ workflows:
             branches:
               only:
                 - dev
+                - voy-610
       - deploy_hold:
           type: approval
           requires:
