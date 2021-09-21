@@ -32,9 +32,6 @@ jobs:
           git reset --hard origin/release
           git merge --no-edit --no-commit origin/dev
 
-          # TODO REMOVE
-          git merge --no-edit --no-commit origin/voy-610
-
           if npm --verbose version --no-git-tag-version "$VERSION"; then
             git add package.json package-lock.json
             git commit -m "v$VERSION [skip ci]"
