@@ -25,12 +25,12 @@ jobs:
             git config --global user.name "CircleCI"
             git config --global user.email "engineering@styleseat.com"
 
-            VERSION=$(python3 setup.py --version)
-
             git fetch origin
 
             git checkout dev
             git reset --hard $CIRCLE_SHA1
+
+            VERSION=$(python3 setup.py --version)
 
             # Update version in package.json, commit to dev, push
             if npm --verbose version --no-git-tag-version "$VERSION"; then
