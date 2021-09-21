@@ -9,44 +9,46 @@ jobs:
       - image: themattrix/tox
     steps:
       - checkout
-      # TODO UNCOMMENT
-      # - run: pip install tox
-      # - run: tox
+      - run: pip install tox
+      - run: tox
 
-  release:
+  tag_release:
     docker:
       - image: cimg/python:3.8-node
     steps:
       - checkout
-      - run: |
-          set -euxo pipefail
+      - run:
+          name: Tag release
+          command: |
+            set -euxo pipefail
 
-          git config --global user.name "CircleCI"
-          git config --global user.email "engineering@styleseat.com"
+            git config --global user.name "CircleCI"
+            git config --global user.email "engineering@styleseat.com"
 
-          VERSION=$(python3 setup.py --version)
+            VERSION=$(python3 setup.py --version)
 
-          # Update release branch
-          git fetch origin
-          git checkout release
-          git reset --hard origin/release
-          git merge --no-edit --no-commit origin/dev
+            git fetch origin
 
-          if npm --verbose version --no-git-tag-version "$VERSION"; then
-            git add package.json package-lock.json
-            git commit -m "v$VERSION [skip ci]"
-          fi
-          git push origin release
+            git checkout dev
+            git reset --hard origin/dev
 
-          # Merge back to dev branch
-          git checkout dev
-          git reset --hard origin/dev
-          git merge --no-edit --no-commit origin/release
-          git push origin dev
+            # Update version in package.json, commit to dev, push
+            if npm --verbose version --no-git-tag-version "$VERSION"; then
+              # package.json was updated, commit and push
+              git add package.json package-lock.json
+              git commit -m "npm: v$VERSION"
+              git push origin dev
+            fi
 
-          # Create tag if doesn't exist
-          git tag "v$VERSION" || true
-          git push origin "v$VERSION" || true
+            # Merge dev→release, push
+            git checkout release
+            git reset --hard origin/release
+            git merge --no-edit --no-commit dev
+            git push origin release
+
+            # Create tag if doesn't exist, push
+            git tag "v$VERSION" || true
+            git push origin "v$VERSION" || true
 
   deploy_stage:
     docker:
@@ -82,7 +84,7 @@ workflows:
   ss_instrumentation:
     jobs:
       - toxtest
-      - release_hold:
+      - tag_release_hold:
           type: approval
           requires:
             - toxtest
@@ -91,16 +93,15 @@ workflows:
               only:
                 - dev
                 - voy-610
-      - release:
+      - tag_release:
           requires:
-            - release_hold
+            - tag_release_hold
           context:
             - global
           filters:
             branches:
               only:
                 - dev
-                - voy-610
       - deploy_hold:
           type: approval
           requires:
