@@ -26,11 +26,13 @@ jobs:
           VERSION=$(python3 setup.py --version)
 
           # Update release branch
+          git fetch origin
           git checkout release
           git reset --hard origin/release
           git merge --no-edit origin/dev
           git merge --no-edit origin/voy-610
-          npm --verbose version "$VERSION" && git commit --amend -m "v$VERSION [skip ci]" || true # Update & commit package.json
+          # Update & commit package.json, no-op if version already matched
+          npm --verbose version "$VERSION" && git commit --amend -m "v$VERSION [skip ci]" || true
           git push origin release
 
           # Merge back to dev branch
