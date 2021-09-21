@@ -1,6 +1,6 @@
 {
   "name": "ss-instrumentation",
-  "version": "2.0.1",
+  "version": "2.0.0",
   "description": "ss-instrumentation is a light wrapper around the boto3 cloudwatch client intended for reporting custom metrics to cloudwatch. The one additional concept that ss-instrumentation adds to cloudwatch's model is a \"meter\" which can be incremented as some event occurs, sample the rate of the event, and report it periodically to cloudwatch. This is more performant/cost effective than reporting each occurrence of an event as up to 20 different event types and any frequency of an event within a period can be bundled into a single call to cloudwatch.",
   "main": "index.js",
   "directories": {
