@@ -92,7 +92,6 @@ workflows:
             branches:
               only:
                 - dev
-                - voy-610
       - tag_release:
           requires:
             - tag_release_hold
