@@ -30,7 +30,7 @@ jobs:
             git fetch origin
 
             git checkout dev
-            git reset --hard origin/dev
+            git reset --hard $CIRCLE_SHA1
 
             # Update version in package.json, commit to dev, push
             if npm --verbose version --no-git-tag-version "$VERSION"; then
