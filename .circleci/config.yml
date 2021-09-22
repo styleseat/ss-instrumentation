@@ -25,30 +25,27 @@ jobs:
             git config --global user.name "CircleCI"
             git config --global user.email "engineering@styleseat.com"
 
-            git fetch origin
-
-            git checkout dev
-            git reset --hard $CIRCLE_SHA1
-
             VERSION=$(python3 setup.py --version)
 
-            # Update version in package.json, commit to dev, push
+            # Update version in package.json
             if npm --verbose version --no-git-tag-version "$VERSION"; then
-              # package.json was updated, commit and push
               git add package.json package-lock.json
               git commit -m "npm: v$VERSION"
-              git push origin dev
             fi
 
-            # Merge dev→release, push
-            git checkout release
-            git reset --hard origin/release
-            git merge --no-edit --no-commit dev
             git push origin release
 
             # Create tag if doesn't exist, push
             git tag "v$VERSION" || true
             git push origin "v$VERSION" || true
+
+            SHA=$(git rev-parse HEAD)
+
+            # Merge release to dev
+            git checkout dev
+            git reset --hard origin/dev
+            git merge --no-edit --no-commit "$SHA"
+            git push origin dev
 
   deploy_stage:
     docker:
@@ -84,23 +81,15 @@ workflows:
   ss_instrumentation:
     jobs:
       - toxtest
-      - tag_release_hold:
-          type: approval
-          requires:
-            - toxtest
-          filters:
-            branches:
-              only:
-                - dev
       - tag_release:
           requires:
-            - tag_release_hold
+            - toxtest
           context:
             - global
           filters:
             branches:
               only:
-                - dev
+                - release
       - deploy_hold:
           type: approval
           requires:
