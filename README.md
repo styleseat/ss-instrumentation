@@ -95,9 +95,11 @@ When adding an alarm drop a line in the #eng-on-call-rotation channel to help th
 
 Meters record the rate of an event over a period of time. To report the rate of a meter to cloudwatch, meters must be "flushed" (frequencies over the period calculated and sent to cloudwatch). This is done by calling the `flush_meters()` method of `SSInstrumenation`. While rates over irregular periods will be calculated accurately, this method should be called regularly so that spikes or dips in rates are not smoothed out over a long reporting period. It is the responsibility of consumers of this library to arrange for `flush_meters()` to be called at a regular interval, once to twice a minute is recommended for standard resolution metrics.
 
-## Flushing Lambda
+## Deployment
 
-The serverless project included at the root level of this repo orchestrates calling the flush function periodically. Deployment is done via circle, after releasing a merge hold.
+This repo contains both a service and a library. The service flushes fluentd periodically, and has a serverless-based deployment. Deployment is performed by creating a pull request from the `release` branch to the `stage` or `prod` branch, and then releasing the `deploy_hold` on CircleCI.
+
+To release the library, submit a pull request from `dev` -> `release` which contains a semantic version bump in `setup.py`. Once merged, the `tag_release` job will automatically run on CircleCI and create a git tag corresponding to the released version.
 
 ## Linting & formatting
 

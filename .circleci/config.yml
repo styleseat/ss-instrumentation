@@ -61,6 +61,15 @@ jobs:
             export AWS_SECRET_ACCESS_KEY="$CIRCLECI_AWS_SECRET_ACCESS_KEY"
             npm run deploy -- --stage stage
 
+      - run:
+          name: Merge stage to dev
+          command: |
+            SHA=$(git rev-parse HEAD)
+            git checkout dev
+            git reset --hard origin/dev
+            git merge --no-edit --no-commit "$SHA"
+            git push origin dev
+
   deploy_prod:
     docker:
       - image: cimg/python:3.8-node
@@ -75,6 +84,15 @@ jobs:
             export AWS_ACCESS_KEY_ID="$CIRCLECI_AWS_ACCESS_KEY_ID"
             export AWS_SECRET_ACCESS_KEY="$CIRCLECI_AWS_SECRET_ACCESS_KEY"
             npm run deploy -- --stage prod
+
+      - run:
+          name: Merge prod to dev
+          command: |
+            SHA=$(git rev-parse HEAD)
+            git checkout dev
+            git reset --hard origin/dev
+            git merge --no-edit --no-commit "$SHA"
+            git push origin dev
 
 workflows:
   version: 2
@@ -97,7 +115,8 @@ workflows:
           filters:
             branches:
               only:
-                - release
+                - stage
+                - prod
       - deploy_stage:
           requires:
             - deploy_hold
@@ -106,7 +125,7 @@ workflows:
           filters:
             branches:
               only:
-                - release
+                - stage
       - deploy_prod:
           requires:
             - deploy_hold
@@ -115,4 +134,4 @@ workflows:
           filters:
             branches:
               only:
-                - release
+                - prod
