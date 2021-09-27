@@ -1,0 +1,48 @@
+{
+  "check_args": {
+    "autopep8": "--global-config './pyproject.toml' --diff",
+    "black": "--config './pyproject.toml' --check",
+    "isort": "--settings-path './pyproject.toml' --check-only",
+    "pylint": "--rcfile='./pyproject.toml'"
+  },
+  "write_args": {
+    "autopep8": "--global-config './pyproject.toml' --in-place",
+    "black": "--config './pyproject.toml'",
+    "isort": "--settings-path './pyproject.toml'",
+    "pylint": "--rcfile='./pyproject.toml'"
+  },
+  "use": {
+    "autoflake": false,
+    "autopep8": true,
+    "black": true,
+    "docformatter": true,
+    "isort": true,
+    "prettier": false,
+    "prettier-eslint": false,
+    "pylint": true,
+    "rubocop": false,
+    "shellcheck": false,
+    "shfmt": false,
+    "yamllint": true
+  },
+  "ignores": [
+    "*/.git/*",
+    "*/__pycache__/*",
+    "*/Gemfile.lock",
+    "*/Pipfile.lock",
+    "*/project_static/*",
+    "*/static/*",
+    "*/templates/*",
+    "*/vendor/*",
+    "*/*.css",
+    "*/*.html",
+    "*/*.jade",
+    "*/*.js",
+    "*/*.scss",
+    "*/.cache",
+    "*/.pytest_cache",
+    "*/.coverage_report",
+    "*/venv/*",
+    "*/.tox/*"
+  ]
+}
