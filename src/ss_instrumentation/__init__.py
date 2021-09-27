@@ -1,13 +1,15 @@
-from __future__ import absolute_import
+from __future__ import (
+    absolute_import,
+)
 
 from .SSInstrumentation import (
-    SSInstrumentation,
     InMemoryMetricStorage,
     RedisMetricStorage,
+    SSInstrumentation,
 )
 
 __all__ = [
-    'SSInstrumentation',
-    'InMemoryMetricStorage',
-    'RedisMetricStorage',
+    "SSInstrumentation",
+    "InMemoryMetricStorage",
+    "RedisMetricStorage",
 ]

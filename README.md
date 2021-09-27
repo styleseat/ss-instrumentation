@@ -89,12 +89,29 @@ If the event tracked by a metric only has one logical result, no dimensions need
 
 Either add an alarm, or add the metric to a dashboard, or both. You can add an alarm [here](https://us-east-1.console.aws.amazon.com/cloudwatch/home?region=us-east-1#alarmsV2:create). If you know what reasonable numbers are for the meter (looking at tracking can help here) then set a static threshold, if you have no idea then you can use the anomaly detection condition and specify a number of standard deviations that represent normal operation. It's OK to guess at what a reasonable threshold is, if you're adding a new metric erring on the side of caution and alarming more actively is fine as this can be adjusted later. When adding an alarm include a description, what situation would cause it, and remediation steps if known. Add a link in the description if it doesn't fit in 1024 characters.
 
-When adding an alarm drop a line in the #eng-on-call-rotation channel to help the on-call engineer knows that the alarm is new and may need to be tuned. 
+When adding an alarm drop a line in the #eng-on-call-rotation channel to help the on-call engineer knows that the alarm is new and may need to be tuned.
 
 ## Flushing Meters
 
 Meters record the rate of an event over a period of time. To report the rate of a meter to cloudwatch, meters must be "flushed" (frequencies over the period calculated and sent to cloudwatch). This is done by calling the `flush_meters()` method of `SSInstrumenation`. While rates over irregular periods will be calculated accurately, this method should be called regularly so that spikes or dips in rates are not smoothed out over a long reporting period. It is the responsibility of consumers of this library to arrange for `flush_meters()` to be called at a regular interval, once to twice a minute is recommended for standard resolution metrics.
 
-## Flushing Lambda
+## Deployment
 
-The serverless project included at the root level of this repo orchestrates calling the flush function periodically. Deployment is done via circle, after releasing a merge hold.
+This repo contains both a service and a library. The service flushes fluentd periodically, and has a serverless-based deployment. Deployment is performed by creating a pull request from the `release` branch to the `stage` or `prod` branch, and then releasing the `deploy_hold` on CircleCI.
+
+To release the library, submit a pull request from `dev` -> `release` which contains a semantic version bump in `setup.py`. Once merged, the `tag_release` job will automatically run on CircleCI and create a git tag corresponding to the released version.
+
+## Linting & formatting
+
+We use [lintball](https://github.com/elijahr/lintball) for linting to fix any auto-fixable issues via a git pre-commit hook. This runs `docformatter`, `autopep8`, `isort`, and `black`, in order.
+
+To set up lintball locally:
+
+```
+brew install bash                             # bash v5 or greater required
+npm install -g lintball                       # Install lintball
+lintball install-tools py                     # Install Python formatters
+git config --local core.hooksPath .githooks   # Enable hooks in .githooks dir
+```
+
+This will format your committed files properly at the time of commit and is considered best practice.

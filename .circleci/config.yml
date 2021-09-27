@@ -1,3 +1,5 @@
+# yamllint disable rule:line-length
+
 # Use the latest 2.1 version of CircleCI pipeline process engine. See: https://circleci.com/docs/2.0/configuration-reference
 version: 2.1
 
@@ -10,14 +12,46 @@ jobs:
       - run: pip install tox
       - run: tox
 
-  deploy_stage:
+  tag_release:
     docker:
-      - image: cimg/node:14.14
+      - image: cimg/python:3.8-node
     steps:
       - checkout
-      - run: sudo apt update && sudo apt install software-properties-common && sudo add-apt-repository ppa:deadsnakes/ppa
-      - run: sudo apt install python3-pip && sudo apt install python3.7 && python3.7 -m pip install pip
-      - run: npm ci
+      - run:
+          name: Tag release
+          command: |
+            set -euxo pipefail
+
+            git config --global user.name "CircleCI"
+            git config --global user.email "engineering@styleseat.com"
+
+            VERSION=$(python3 setup.py --version)
+
+            # Update version in package.json
+            if npm --verbose version --no-git-tag-version "$VERSION"; then
+              git add package.json package-lock.json
+              git commit -m "npm: v$VERSION"
+            fi
+
+            git push origin release
+
+            # Create tag if doesn't exist, push
+            git tag "v$VERSION" || true
+            git push origin "v$VERSION" || true
+
+            SHA=$(git rev-parse HEAD)
+
+            # Merge release to dev
+            git checkout dev
+            git reset --hard origin/dev
+            git merge --no-edit --no-commit "$SHA"
+            git push origin dev
+
+  deploy_stage:
+    docker:
+      - image: cimg/python:3.8-node
+    steps:
+      - checkout
       - run:
           name: Serverless Deploy (stage)
           command: |
@@ -27,13 +61,20 @@ jobs:
             export AWS_SECRET_ACCESS_KEY="$CIRCLECI_AWS_SECRET_ACCESS_KEY"
             npm run deploy -- --stage stage
 
+      - run:
+          name: Merge stage to dev
+          command: |
+            SHA=$(git rev-parse HEAD)
+            git checkout dev
+            git reset --hard origin/dev
+            git merge --no-edit --no-commit "$SHA"
+            git push origin dev
+
   deploy_prod:
     docker:
-      - image: cimg/node:14.14
+      - image: cimg/python:3.8-node
     steps:
       - checkout
-      - run: sudo apt update && sudo apt install software-properties-common && sudo add-apt-repository ppa:deadsnakes/ppa
-      - run: sudo apt install python3-pip && sudo apt install python3.7 && python3.7 -m pip install pip
       - run: npm ci
       - run:
           name: Serverless Deploy (prod)
@@ -44,11 +85,29 @@ jobs:
             export AWS_SECRET_ACCESS_KEY="$CIRCLECI_AWS_SECRET_ACCESS_KEY"
             npm run deploy -- --stage prod
 
+      - run:
+          name: Merge prod to dev
+          command: |
+            SHA=$(git rev-parse HEAD)
+            git checkout dev
+            git reset --hard origin/dev
+            git merge --no-edit --no-commit "$SHA"
+            git push origin dev
+
 workflows:
   version: 2
   ss_instrumentation:
     jobs:
       - toxtest
+      - tag_release:
+          requires:
+            - toxtest
+          context:
+            - global
+          filters:
+            branches:
+              only:
+                - release
       - deploy_hold:
           type: approval
           requires:
@@ -56,7 +115,8 @@ workflows:
           filters:
             branches:
               only:
-                - master
+                - stage
+                - prod
       - deploy_stage:
           requires:
             - deploy_hold
@@ -65,7 +125,7 @@ workflows:
           filters:
             branches:
               only:
-                - master
+                - stage
       - deploy_prod:
           requires:
             - deploy_hold
@@ -74,4 +134,4 @@ workflows:
           filters:
             branches:
               only:
-                - master
+                - prod
