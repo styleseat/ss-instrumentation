@@ -2,7 +2,7 @@ service: ss-instrumentation-flusher
 
 provider:
   name: aws
-  runtime: python3.7
+  runtime: python3.8
   environment:
     REDIS_HOST: ${env:REDIS_HOST}
     REDIS_PORT: ${env:REDIS_PORT}
