@@ -33,3 +33,7 @@ functions:
 
 plugins:
   - serverless-python-requirements
+
+custom:
+  pythonRequirements:
+    usePoetry: false  # use requirements.txt instead of pyproject.toml
