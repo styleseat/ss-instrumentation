@@ -71,6 +71,17 @@ jobs:
             git merge --no-edit --no-commit "$SHA"
             git push origin dev
 
+  generate_changelog:
+    docker:
+      - image: node:10
+    steps:
+      - checkout
+      - run:
+          name: Generate staging changelog
+          command: |
+            npm install jira-changelog@1.6
+            ./node_modules/.bin/jira-changelog --range origin/prod...origin/staging --release "${CIRCLE_PROJECT_REPONAME}-${CIRCLE_BUILD_NUM}"
+
   deploy_prod:
     docker:
       - image: cimg/python:3.8-node
@@ -123,6 +134,13 @@ workflows:
             - deploy_hold
           context:
             - global
+          filters:
+            branches:
+              only:
+                - stage
+      - generate_changelog:
+          requires:
+            - deploy_stage
           filters:
             branches:
               only:
