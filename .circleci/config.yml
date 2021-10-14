@@ -80,7 +80,7 @@ jobs:
           name: Generate staging changelog
           command: |
             npm install jira-changelog@1.6
-            ./node_modules/.bin/jira-changelog --range origin/prod...origin/staging --release "${CIRCLE_PROJECT_REPONAME}-${CIRCLE_BUILD_NUM}"
+            ./node_modules/.bin/jira-changelog --range origin/prod...origin/stage --release "${CIRCLE_PROJECT_REPONAME}-${CIRCLE_BUILD_NUM}"
 
   deploy_prod:
     docker:
